@@ -1,11 +1,11 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import WhatsAppEditor from "./pages/WhatsAppEditor";
 import DiscordEditor from "./pages/DiscordEditor";
 
 function App() {
   return (
-    <Router basename="/editor_discord_whatsapp">
+    <Router>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/whatsapp" element={<WhatsAppEditor />} />
