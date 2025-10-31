@@ -4,7 +4,7 @@ import path from "path";
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: "/editor_discord_whatsapp/",
+  base: "/",
   plugins: [react()],
   resolve: {
     alias: {
