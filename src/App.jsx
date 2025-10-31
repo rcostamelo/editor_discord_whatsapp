@@ -5,7 +5,7 @@ import DiscordEditor from "./pages/DiscordEditor";
 
 function App() {
   return (
-    <Router basename={import.meta.env.BASE_URL}>
+    <Router basename="/editor_discord_whatsapp">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/whatsapp" element={<WhatsAppEditor />} />
