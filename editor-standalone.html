@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Mensagens - WhatsApp & Discord</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .editor-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .editor-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        .editor-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .editor-card.whatsapp {
+            border-top: 5px solid #25D366;
+        }
+
+        .editor-card.discord {
+            border-top: 5px solid #5865F2;
+        }
+
+        .editor-card h2 {
+            font-size: 1.8rem;
+            margin: 20px 0 15px 0;
+            color: #333;
+        }
+
+        .editor-card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .editor-card .icon {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+
+        .editor-card .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .editor-card .tag {
+            background: #f0f0f0;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            color: #555;
+        }
+
+        .editor-workspace {
+            display: none;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .editor-workspace.active {
+            display: block;
+        }
+
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .editor-header h2 {
+            font-size: 2rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            margin-left: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .toolbar button {
+            padding: 10px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toolbar button:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .editor-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        @media (max-width: 768px) {
+            .editor-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .editor-panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .editor-panel h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.2rem;
+        }
+
+        .editor-panel textarea {
+            width: 100%;
+            min-height: 400px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        .editor-panel textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .preview-panel {
+            background: #0a0a0a;
+            color: white;
+            min-height: 400px;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-wrap: break-word;
+            line-height: 1.6;
+        }
+
+        .preview-panel.whatsapp-preview {
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iYSIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIj48cGF0aCBmaWxsPSIjMGIxNDFhIiBkPSJNMCAwaDQwdjQwSDB6Ii8+PHBhdGggZD0iTTAgMjBhMjAgMjAgMCAwIDEgNDAgMGgyMGEyMCAyMCAwIDAgMSA0MCAwaDIwYTIwIDIwIDAgMCAxIDQwIDBoMjBhMjAgMjAgMCAwIDEgNDAgMHYyMGEyMCAyMCAwIDAgMS00MCAwdjIwYTIwIDIwIDAgMCAxLTQwIDB2MjBhMjAgMjAgMCAwIDEtNDAgMHYyMGEyMCAyMCAwIDAgMS00MCAwem0tNDAyMGEyMCAyMCAwIDAgMSA0MCAwaDIwYTIwIDIwIDAgMCAxIDQwIDBoMjBhMjAgMjAgMCAwIDEgNDAgMGgyMGEyMCAyMCAwIDAgMSA0MCAwdjIwYTIwIDIwIDAgMCAxLTQwIDB2MjBhMjAgMjAgMCAwIDEtNDAgMHYyMGEyMCAyMCAwIDAgMS00MCAwdjIwYTIwIDIwIDAgMCAxLTQwIDAiIGZpbGw9IiMxMTFiMjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IGZpbGw9InVybCgjYSkiIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiLz48L3N2Zz4=');
+            background-size: 300px;
+        }
+
+        .whatsapp-bubble {
+            background: #005c4b;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            max-width: 80%;
+            margin-left: auto;
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .discord-message {
+            background: #36393f;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .stats span {
+            background: #f0f0f0;
+            padding: 5px 12px;
+            border-radius: 8px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .guide {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 25px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .guide h4 {
+            color: #1976d2;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .guide-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .guide-item {
+            font-size: 0.9rem;
+            padding: 8px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .guide-item code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #d32f2f;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.show {
+            display: block;
+        }
+
+        .spoiler {
+            background: #202225;
+            color: #202225;
+            padding: 2px 4px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .spoiler:hover {
+            background: #4f545c;
+            color: #dcddde;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            padding: 20px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>✨ Editor de Mensagens</h1>
+            <p>Formate suas mensagens com estilo para WhatsApp e Discord</p>
+        </header>
+
+        <!-- Seleção de Editor -->
+        <div id="editorSelection" class="editor-selection">
+            <div class="editor-card whatsapp" onclick="showEditor('whatsapp')">
+                <div class="icon">💬</div>
+                <h2>Editor WhatsApp</h2>
+                <p>Formate mensagens para o WhatsApp com negrito, itálico, tachado e código</p>
+                <div class="tags">
+                    <span class="tag">Negrito</span>
+                    <span class="tag">Itálico</span>
+                    <span class="tag">Tachado</span>
+                    <span class="tag">Código</span>
+                </div>
+            </div>
+
+            <div class="editor-card discord" onclick="showEditor('discord')">
+                <div class="icon">💬</div>
+                <h2>Editor Discord</h2>
+                <p>Formate mensagens para o Discord com Markdown completo e recursos avançados</p>
+                <div class="tags">
+                    <span class="tag">Markdown</span>
+                    <span class="tag">Spoilers</span>
+                    <span class="tag">Código</span>
+                    <span class="tag">Headers</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Editor WhatsApp -->
+        <div id="whatsappEditor" class="editor-workspace">
+            <div class="editor-header">
+                <h2>
+                    <span>💬</span>
+                    Editor WhatsApp
+                </h2>
+                <button class="btn btn-primary" onclick="backToSelection()">← Voltar</button>
+            </div>
+
+            <div class="toolbar">
+                <button onclick="applyFormat('whatsapp', '*')"><strong>B</strong> Negrito</button>
+                <button onclick="applyFormat('whatsapp', '_')"><em>I</em> Itálico</button>
+                <button onclick="applyFormat('whatsapp', '~')"><del>S</del> Tachado</button>
+                <button onclick="applyFormat('whatsapp', '```')">⌨️ Código</button>
+            </div>
+
+            <div class="editor-grid">
+                <div class="editor-panel">
+                    <h3>📝 Editor</h3>
+                    <textarea id="whatsappInput" placeholder="Digite sua mensagem aqui..." oninput="updatePreview('whatsapp')"></textarea>
+                    <div class="stats">
+                        <span id="whatsappChars">0 caracteres</span>
+                        <span id="whatsappWords">0 palavras</span>
+                    </div>
+                </div>
+
+                <div class="editor-panel">
+                    <h3>👁️ Preview</h3>
+                    <div class="preview-panel whatsapp-preview">
+                        <div class="whatsapp-bubble" id="whatsappPreview">
+                            O preview aparecerá aqui...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-primary" onclick="copyText('whatsapp')">📋 Copiar Texto</button>
+                <button class="btn btn-secondary" onclick="clearText('whatsapp')">🗑️ Limpar</button>
+                <button class="btn btn-secondary" onclick="downloadText('whatsapp')">💾 Baixar</button>
+            </div>
+
+            <div class="guide">
+                <h4>📖 Guia de Formatação WhatsApp</h4>
+                <div class="guide-grid">
+                    <div class="guide-item"><strong></strong>Negrito:</strong> <code>*texto*</code></div>
+                    <div class="guide-item"><strong>Itálico:</strong> <code>_texto_</code></div>
+                    <div class="guide-item"><strong>Tachado:</strong> <code>~texto~</code></div>
+                    <div class="guide-item"><strong>Código:</strong> <code>```texto```</code></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Editor Discord -->
+        <div id="discordEditor" class="editor-workspace">
+            <div class="editor-header">
+                <h2>
+                    <span>💬</span>
+                    Editor Discord
+                </h2>
+                <button class="btn btn-primary" onclick="backToSelection()">← Voltar</button>
+            </div>
+
+            <div class="toolbar">
+                <button onclick="applyFormat('discord', '**')"><strong>B</strong> Negrito</button>
+                <button onclick="applyFormat('discord', '*')"><em>I</em> Itálico</button>
+                <button onclick="applyFormat('discord', '__')"><u>U</u> Sublinhado</button>
+                <button onclick="applyFormat('discord', '~~')"><del>S</del> Tachado</button>
+                <button onclick="applyFormat('discord', '`')">⌨️ Código</button>
+                <button onclick="applyFormat('discord', '```\n', '\n```')">📝 Bloco</button>
+                <button onclick="applyFormat('discord', '||')">👁️ Spoiler</button>
+                <button onclick="applyQuote('discord')">💬 Quote</button>
+            </div>
+
+            <div class="editor-grid">
+                <div class="editor-panel">
+                    <h3>📝 Editor</h3>
+                    <textarea id="discordInput" placeholder="Digite sua mensagem aqui..." oninput="updatePreview('discord')"></textarea>
+                    <div class="stats">
+                        <span id="discordChars">0 caracteres</span>
+                        <span id="discordWords">0 palavras</span>
+                    </div>
+                </div>
+
+                <div class="editor-panel">
+                    <h3>👁️ Preview Discord</h3>
+                    <div class="preview-panel">
+                        <div class="discord-message" id="discordPreview">
+                            O preview aparecerá aqui...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-primary" onclick="copyText('discord')">📋 Copiar Texto</button>
+                <button class="btn btn-secondary" onclick="clearText('discord')">🗑️ Limpar</button>
+                <button class="btn btn-secondary" onclick="downloadText('discord')">💾 Baixar</button>
+            </div>
+
+            <div class="guide">
+                <h4>📖 Guia de Formatação Discord</h4>
+                <div class="guide-grid">
+                    <div class="guide-item"><strong>Negrito:</strong> <code>**texto**</code></div>
+                    <div class="guide-item"><strong>Itálico:</strong> <code>*texto*</code></div>
+                    <div class="guide-item"><strong>Sublinhado:</strong> <code>__texto__</code></div>
+                    <div class="guide-item"><strong>Tachado:</strong> <code>~~texto~~</code></div>
+                    <div class="guide-item"><strong>Código:</strong> <code>`texto`</code></div>
+                    <div class="guide-item"><strong>Bloco:</strong> <code>```texto```</code></div>
+                    <div class="guide-item"><strong>Spoiler:</strong> <code>||texto||</code></div>
+                    <div class="guide-item"><strong>Quote:</strong> <code>> texto</code></div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p><strong>Editor de Mensagens v1.0</strong></p>
+            <p>Desenvolvido com ❤️ | 2024</p>
+        </footer>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // Função para mostrar o editor selecionado
+        function showEditor(type) {
+            document.getElementById('editorSelection').style.display = 'none';
+            document.getElementById(type + 'Editor').classList.add('active');
+        }
+
+        // Função para voltar à seleção
+        function backToSelection() {
+            document.getElementById('editorSelection').style.display = 'grid';
+            document.getElementById('whatsappEditor').classList.remove('active');
+            document.getElementById('discordEditor').classList.remove('active');
+        }
+
+        // Função para aplicar formatação
+        function applyFormat(type, before, after = before) {
+            const textarea = document.getElementById(type + 'Input');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const selectedText = textarea.value.substring(start, end);
+
+            if (!selectedText) {
+                showToast('⚠️ Selecione um texto primeiro!');
+                return;
+            }
+
+            const newText = textarea.value.substring(0, start) +
+                           before + selectedText + after +
+                           textarea.value.substring(end);
+
+            textarea.value = newText;
+            textarea.focus();
+            textarea.setSelectionRange(start + before.length, end + before.length);
+
+            updatePreview(type);
+            showToast('✅ Formatação aplicada!');
+        }
+
+        // Função para aplicar quote
+        function applyQuote(type) {
+            const textarea = document.getElementById(type + 'Input');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const selectedText = textarea.value.substring(start, end);
+
+            if (!selectedText) {
+                showToast('⚠️ Selecione um texto primeiro!');
+                return;
+            }
+
+            const quotedText = selectedText.split('\n').map(line => '> ' + line).join('\n');
+            const newText = textarea.value.substring(0, start) +
+                           quotedText +
+                           textarea.value.substring(end);
+
+            textarea.value = newText;
+            updatePreview(type);
+            showToast('✅ Quote aplicado!');
+        }
+
+        // Função para atualizar preview
+        function updatePreview(type) {
+            const input = document.getElementById(type + 'Input').value;
+            const preview = document.getElementById(type + 'Preview');
+
+            // Atualizar estatísticas
+            updateStats(type, input);
+
+            if (!input) {
+                preview.innerHTML = 'O preview aparecerá aqui...';
+                return;
+            }
+
+            let formatted = input;
+
+            if (type === 'whatsapp') {
+                // WhatsApp formatting
+                formatted = formatted.replace(/\*([^*]+)\*/g, '<strong>$1</strong>');
+                formatted = formatted.replace(/_([^_]+)_/g, '<em>$1</em>');
+                formatted = formatted.replace(/~([^~]+)~/g, '<del>$1</del>');
+                formatted = formatted.replace(/```([^`]+)```/g, '<code style="background: rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace;">$1</code>');
+            } else if (type === 'discord') {
+                // Discord formatting
+                formatted = formatted.replace(/```([\s\S]+?)```/g, '<pre style="background: #2f3136; padding: 10px; border-radius: 5px; overflow-x: auto; margin: 5px 0;"><code>$1</code></pre>');
+                formatted = formatted.replace(/`([^`]+)`/g, '<code style="background: #2f3136; padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #eb459e;">$1</code>');
+                formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+                formatted = formatted.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+                formatted = formatted.replace(/__([^_]+)__/g, '<u>$1</u>');
+                formatted = formatted.replace(/~~([^~]+)~~/g, '<del>$1</del>');
+                formatted = formatted.replace(/\|\|([^|]+)\|\|/g, '<span class="spoiler" title="Clique para revelar">$1</span>');
+                formatted = formatted.replace(/^> (.+)$/gm, '<div style="border-left: 4px solid #4f545c; padding-left: 12px; margin: 5px 0; color: #b9bbbe;">$1</div>');
+            }
+
+            formatted = formatted.replace(/\n/g, '<br>');
+            preview.innerHTML = formatted;
+        }
+
+        // Função para atualizar estatísticas
+        function updateStats(type, text) {
+            const chars = text.length;
+            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+
+            document.getElementById(type + 'Chars').textContent = chars + ' caracteres';
+            document.getElementById(type + 'Words').textContent = words + ' palavras';
+        }
+
+        // Função para copiar texto
+        function copyText(type) {
+            const textarea = document.getElementById(type + 'Input');
+
+            if (!textarea.value) {
+                showToast('⚠️ Nada para copiar!');
+                return;
+            }
+
+            textarea.select();
+            document.execCommand('copy');
+            showToast('✅ Texto copiado com sucesso!');
+        }
+
+        // Função para limpar texto
+        function clearText(type) {
+            if (confirm('Tem certeza que deseja limpar todo o texto?')) {
+                document.getElementById(type + 'Input').value = '';
+                updatePreview(type);
+                showToast('🗑️ Texto limpo!');
+            }
+        }
+
+        // Função para baixar texto
+        function downloadText(type) {
+            const textarea = document.getElementById(type + 'Input');
+
+            if (!textarea.value) {
+                showToast('⚠️ Nada para baixar!');
+                return;
+            }
+
+            const blob = new Blob([textarea.value], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = type + '-message-' + Date.now() + '.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+
+            showToast('💾 Arquivo baixado!');
+        }
+
+        // Função para mostrar toast
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Adicionar suporte a atalhos de teclado
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                const activeEditor = document.querySelector('.editor-workspace.active');
+                if (!activeEditor) return;
+
+                const type = activeEditor.id.replace('Editor', '');
+
+                switch(e.key.toLowerCase()) {
+                    case 'b':
+                        e.preventDefault();
+                        applyFormat(type, type === 'whatsapp' ? '*' : '**');
+                        break;
+                    case 'i':
+                        e.preventDefault();
+                        applyFormat(type, type === 'whatsapp' ? '_' : '*');
+                        break;
+                    case 'k':
+                        e.preventDefault();
+                        applyFormat(type, '~');
+                        break;
+                }
+            }
+        });
+
+        // Adicionar funcionalidade de revelar spoiler ao clicar
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('spoiler')) {
+                e.target.style.background = '#4f545c';
+                e.target.style.color = '#dcddde';
+            }
+        });
+    </script>
+</body>
+</html>
