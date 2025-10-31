@@ -6,6 +6,8 @@ Um editor de texto moderno e elegante para formatar mensagens do WhatsApp e Disc
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.x-38bdf8)
 ![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-latest-black)
 ![React Router](https://img.shields.io/badge/React_Router-6.x-red)
+![Build Status](https://github.com/rcostamelo/editor_discord_whatsapp/workflows/Build%20Status/badge.svg)
+
 
 ## 🌟 Visão Geral
 
